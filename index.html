@@ -1,0 +1,239 @@
+<html>
+    <head>
+        <title>💣 Minesweper 💥</title>
+    </head>
+    <body>
+        <h1>Minesweper</h1>
+        <div id="table"></div>
+        <button id="reset">Reset</button>
+        <button id="complete">Complete</button>
+        <script>
+            function range(x) {
+                return [...Array(x).keys()];
+            }
+
+            var tableSize = 10
+            var gameDone = false
+
+            // Create Table
+            var fakeTable = document.getElementById('table')
+            for (y in range(tableSize)) {
+                fakeRow = document.createElement("div")
+                fakeRow.style.display = "flex"
+                fakeRow.style.height = "30px";
+                fakeTable.appendChild(fakeRow);
+                for (x in range(tableSize)) {
+                    // Create Cell
+                    cell = document.createElement("div")
+                    cell.style.height = "30px";
+                    cell.style.width = "30px";
+                    cell.style.border = "1px solid black";
+                    cell.style.backgroundColor = "skyblue";
+                    fakeRow.appendChild(cell);
+                }
+            }
+            function reset() {
+                for (y in range(tableSize)) {
+                    for (x in range(tableSize)) {
+                        cell = fakeTable.children[y].children[x]
+                        cell.style.backgroundColor = "skyblue";
+                        cell.innerText = ""
+                        if (Math.random()>=0.85) {
+                            cell.className = "bomb"
+                        } else {
+                            cell.className = "safe"
+                        }
+                    }
+                }
+            }
+            function complete() {
+                for (y in range(tableSize)) {
+                    for (x in range(tableSize)) {
+                        cell = fakeTable.children[y].children[x]
+                        if (cell.className == "bomb") {
+                            cell.style.backgroundColor = "red"
+                        } else {
+                            var bombs = getNumberofBombs(cell)
+                            if (bombs) {
+                                cell.innerText = bombs
+                            }
+                            cell.style.backgroundColor = "green"
+                        }
+                    }
+                }
+            }
+            function checkIsDone() {
+                for (y in range(tableSize)) {
+                    for (x in range(tableSize)) {
+                        cell = fakeTable.children[y].children[x]
+                        if (cell.className == "bomb") {
+                            continue
+                        } else if (cell.className == "safe" && cell.style.backgroundColor != "green") {
+                            return false
+                        }
+                    }
+                }
+                return true
+            }
+            function getCell(x,y) {
+                if (fakeTable.children[y] == null) {
+                    return null
+                }
+                return fakeTable.children[y].children[x]
+            }
+            function getNumberofBombs(cell) {
+                eRow = Array.prototype.slice.call( cell.parentElement.children )
+                x = eRow.indexOf(cell)
+                eTable = Array.prototype.slice.call( cell.parentElement.parentElement.children )
+                y = eTable.indexOf(cell.parentElement)
+                // Top row surrounding cell
+                eTopLeftCorner = getCell(x-1, y-1)
+                eTop = getCell(x, y-1)
+                eTopRightCorner = getCell(x+1, y-1)
+
+                // Middle row surrounding cell
+                eLeft = getCell(x-1, y)
+                eRight = getCell(x+1, y)
+
+                // Bottom row surrounding cell
+                eBottomLeftCorner = getCell(x-1, y+1)
+                eBottom = getCell(x, y+1)
+                eBottomRightCorner = getCell(x+1, y+1)
+
+                var surroundingCells = [
+                    eTopLeftCorner, eTop, eTopRightCorner, 
+                    eLeft, eRight, 
+                    eBottomLeftCorner, eBottom, eBottomRightCorner
+                ]
+
+                var bombs = 0
+                for (i in surroundingCells) {
+                    if (surroundingCells[i] == null) {
+                        continue
+                    }
+                    if (surroundingCells[i].className == "bomb") {
+                        bombs+=1
+                    }
+                }
+                if (bombs == 0) {
+                    return null
+                }
+                return bombs
+            }
+            function fillSurroundingSafes(cell) {
+                eRow = Array.prototype.slice.call( cell.parentElement.children )
+                x = eRow.indexOf(cell)
+                eTable = Array.prototype.slice.call( cell.parentElement.parentElement.children )
+                y = eTable.indexOf(cell.parentElement)
+                // Top row surrounding cell
+                eTopLeftCorner = getCell(x-1, y-1)
+                eTop = getCell(x, y-1)
+                eTopRightCorner = getCell(x+1, y-1)
+
+                // Middle row surrounding cell
+                eLeft = getCell(x-1, y)
+                eRight = getCell(x+1, y)
+
+                // Bottom row surrounding cell
+                eBottomLeftCorner = getCell(x-1, y+1)
+                eBottom = getCell(x, y+1)
+                eBottomRightCorner = getCell(x+1, y+1)
+
+                var surroundingCells = [
+                    eTopLeftCorner, eTop, eTopRightCorner, 
+                    eLeft, eRight, 
+                    eBottomLeftCorner, eBottom, eBottomRightCorner
+                ]
+
+                for (i in surroundingCells) {
+                    var currentSurroundingCell = surroundingCells[i]
+                    if (currentSurroundingCell == null) {
+                        continue
+                    } if (currentSurroundingCell.style.backgroundColor == "green") {
+                        continue
+                    } else {
+                        var bombs = getNumberofBombs(currentSurroundingCell)
+                        if (bombs) {
+                            currentSurroundingCell.style.backgroundColor = "green"
+                            currentSurroundingCell.innerText = bombs
+                        } else {
+                            currentSurroundingCell.style.backgroundColor = "green"
+                            //debugger
+                            fillSurroundingSafes(currentSurroundingCell)
+                        }
+                    }
+                }
+            }
+            function addFlag(cell) {
+                console.log(cell)
+                if (cell.children.length == 0) {
+                    flag = document.createElement("p");
+                    flag.style.bottom = "0";
+                    flag.style.margin = "0px"
+                    flag.style.fontSize = "1.35em"
+                    flag.style.width = "100%"
+                    flag.style.height = "100%"
+                    flag.innerText = "🚩"
+
+                    cell.appendChild(flag)
+                } else {
+                    console.log(cell.children[0])
+                    cell.children[0].remove()
+                }
+            }
+            reset()
+            fakeTable.addEventListener("click", function(e) {
+                if (gameDone == true) {
+                    return
+                }
+                if (e.target.children.length != 0) {
+                    console.log(e.target)
+                    return
+                }
+                if (e.target.className == "bomb") {
+                    e.target.style.backgroundColor = "red"
+                    complete()
+                    window.alert("lost")
+                    gameDone = true
+                    return
+                } else if (e.target.className == "safe") {
+                    e.target.style.backgroundColor = "green"
+
+                    var bombs = getNumberofBombs(e.target)
+                    if (bombs) {
+                        e.target.innerText = bombs
+                    } else {
+                        fillSurroundingSafes(e.target)
+                    }
+                }
+                if (checkIsDone()) {
+                    window.alert("🎉 You won! 🥳")
+                    gameDone = true
+                }
+            })
+            document.getElementById("reset").addEventListener("click", function(e) {
+                reset()
+                gameDone = false
+            })
+            document.getElementById("complete").addEventListener("click", function(e) {
+                complete()
+                gameDone = true
+            })
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                // Create Flag
+                if (e.target.tagName == "DIV") {
+                    if (e.target.style.backgroundColor == "skyblue") {
+                        addFlag(e.target)
+                    }
+                } else if (e.target.tagName == "P") {
+                    console.log(e.target)
+                    if (e.target.parentElement.style.backgroundColor == "skyblue") {
+                        addFlag(e.target.parentElement)
+                    }
+                }
+                return false;
+            }, false);
+        </script>
+    </body>
+</html>
