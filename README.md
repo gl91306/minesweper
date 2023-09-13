@@ -1,6 +1,6 @@
 # minesweper
 minesweeper but very scuffed 🙏  
-link: [https://gl91306.github.io/minesweper/]([url](https://gl91306.github.io/minesweper/))
+link: [https://gl91306.github.io/minesweper/](https://gl91306.github.io/minesweper/)
 
 click to reveal the things  
 if its bomb u die  
