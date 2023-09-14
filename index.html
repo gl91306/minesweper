@@ -12,8 +12,9 @@
                 return [...Array(x).keys()];
             }
 
-            var tableSize = 10
+            var tableSize = 8
             var gameDone = false
+            var firstClick = true
 
             // Create Table
             var fakeTable = document.getElementById('table')
@@ -33,12 +34,29 @@
                 }
             }
             function reset() {
+                var numBombs = Math.round((tableSize*tableSize)*(0.156))
+                //console.log("numbbombs", numBombs)
+                var bombArray = []
+                for (var i = 0; i < numBombs; i++) {
+                    var randnum = Math.floor(Math.random() * tableSize*tableSize)
+                    if (randnum in bombArray) {
+                        i--
+                        continue
+                    }
+                    bombArray.push(randnum)
+                }
+                //console.log(bombArray)
+                function inBombArray(x,y) {
+                    var index = parseInt(y)*tableSize+parseInt(x)
+                    //console.log(index, bombArray, (index in bombArray))
+                    return bombArray.includes(index)
+                }
                 for (y in range(tableSize)) {
                     for (x in range(tableSize)) {
                         cell = fakeTable.children[y].children[x]
                         cell.style.backgroundColor = "skyblue";
                         cell.innerText = ""
-                        if (Math.random()>=0.85) {
+                        if (inBombArray(x,y)) {
                             cell.className = "bomb"
                         } else {
                             cell.className = "safe"
@@ -165,7 +183,7 @@
                 }
             }
             function addFlag(cell) {
-                console.log(cell)
+                //console.log(cell)
                 if (cell.children.length == 0) {
                     flag = document.createElement("p");
                     flag.style.bottom = "0";
@@ -177,17 +195,29 @@
 
                     cell.appendChild(flag)
                 } else {
-                    console.log(cell.children[0])
+                    //console.log(cell.children[0])
                     cell.children[0].remove()
                 }
             }
             reset()
             fakeTable.addEventListener("click", function(e) {
+                if (firstClick) {
+                    //console.log("firstclick")
+                    var bombs = getNumberofBombs(e.target)
+                    //console.log(bombs)
+                    while((bombs != null) || (e.target.className == "bomb")) {
+                        reset()
+                        bombs = getNumberofBombs(e.target)
+                        //console.log(bombs)
+                    }
+                    //console.log(bombs)
+                    firstClick = false
+                }
                 if (gameDone == true) {
                     return
                 }
                 if (e.target.children.length != 0) {
-                    console.log(e.target)
+                    //console.log(e.target)
                     return
                 }
                 if (e.target.className == "bomb") {
@@ -212,10 +242,12 @@
                 }
             })
             document.getElementById("reset").addEventListener("click", function(e) {
+                firstClick = true
                 reset()
                 gameDone = false
             })
             document.getElementById("complete").addEventListener("click", function(e) {
+                firstClick = false
                 complete()
                 gameDone = true
             })
@@ -227,7 +259,7 @@
                         addFlag(e.target)
                     }
                 } else if (e.target.tagName == "P") {
-                    console.log(e.target)
+                    //console.log(e.target)
                     if (e.target.parentElement.style.backgroundColor == "skyblue") {
                         addFlag(e.target.parentElement)
                     }
